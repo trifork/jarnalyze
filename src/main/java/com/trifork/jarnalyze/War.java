@@ -91,7 +91,6 @@ public class War implements ApplicationArchive, Container {
                     }
                 }
             }
-            System.out.println("Size of external cp for " + this + " is " + externalClassPath.size());
         }
     }
 
