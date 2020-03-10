@@ -40,8 +40,13 @@ public class ClassFileCollectionImpl implements ClassFileCollection {
         .forEach(path -> classFileList.add(path.toString()));
     }
 
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+    
     public String toString() {
-        return displayName + " (in " + container.toString() + ")";
+        return displayName + " in " + container.toString();
     }
 
     @Override

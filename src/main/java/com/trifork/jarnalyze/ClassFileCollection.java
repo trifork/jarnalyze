@@ -7,4 +7,5 @@ import java.util.Set;
 public interface ClassFileCollection {
     Set<String> getClasses();
     String getChecksum() throws NoSuchAlgorithmException, IOException;
+    String getDisplayName();
 }

@@ -110,6 +110,7 @@ public class Ear implements ApplicationArchive, Container {
     @Override
     public void analyze() throws Exception {
         HashSet<ClassFileCollection> accumulatedWarCp = new HashSet<>();
+        HashSet<ClassFileCollection> candidatesForSharing = new HashSet<>();
         
         for (War war: wars) {
             war.analyze();
@@ -118,12 +119,21 @@ public class Ear implements ApplicationArchive, Container {
             HashSet<ClassFileCollection> intersection = new HashSet<ClassFileCollection>(cp);
             intersection.retainAll(accumulatedWarCp);
             for(ClassFileCollection cfs: intersection) {
-                Findings.log.info("Candidate for sharing " + cfs);
+                candidatesForSharing.add(cfs);
             }
             accumulatedWarCp.addAll(cp);
         }
         
-        
+        for (ClassFileCollection cfs: candidatesForSharing) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Candidate for sharing: " + cfs.getDisplayName());
+            for (War war: wars) {
+                if (war.getInternalClassPath().contains(cfs)) {
+                    sb.append(System.lineSeparator() + "    Contained by " + war);
+                }
+            }
+            Findings.log.info(sb.toString());
+        }
     }
 
     @Override
