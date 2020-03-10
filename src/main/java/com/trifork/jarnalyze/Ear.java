@@ -108,12 +108,12 @@ public class Ear implements ApplicationArchive, Container {
     }
 
     @Override
-    public void analyze() throws Exception {
+    public void analyze(CLIOptions options) throws Exception {
         HashSet<ClassFileCollection> accumulatedWarCp = new HashSet<>();
         HashSet<ClassFileCollection> candidatesForSharing = new HashSet<>();
         
         for (War war: wars) {
-            war.analyze();
+            war.analyze(options);
             
             Set<ClassFileCollection> cp = war.getInternalClassPath();
             HashSet<ClassFileCollection> intersection = new HashSet<ClassFileCollection>(cp);
@@ -139,5 +139,9 @@ public class Ear implements ApplicationArchive, Container {
     @Override
     public String toString() {
         return archiveName;
+    }
+
+    public Set<ClassFileCollection> getAccumulatedLibraryClassPath() {
+        return new HashSet<ClassFileCollection>(libs.values());
     }
 }

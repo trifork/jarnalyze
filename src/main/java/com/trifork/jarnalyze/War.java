@@ -50,8 +50,7 @@ public class War implements ApplicationArchive, Container {
             Path resolvedPath = path.resolve(jarFilePath);
             FileSystem jarFS = FileSystems.newFileSystem(resolvedPath);
 
-            internalClassPath.add(new ClassFileCollectionImpl("WEB-INF/lib/" + jarFilePath.getFileName(), 
-                    resolvedPath, 
+            internalClassPath.add(new ClassFileCollectionImpl("WEB-INF/lib/" + jarFilePath.getFileName(), resolvedPath,
                     jarFS.getRootDirectories().iterator().next(), this));
         }
     }
@@ -85,37 +84,27 @@ public class War implements ApplicationArchive, Container {
 
                         ClassFileCollection libCp = parentEar.getLibraryClassPath(jarFilePath);
                         if (libCp == null) {
-                            Findings.log.warning(this.archiveName + " has an unresolved Class-Path reference to " + jarFilePath);
+                            Findings.log.warning(
+                                    this.archiveName + " has an unresolved Class-Path reference to " + jarFilePath);
                         }
                         externalClassPath.add(libCp);
                     }
                 }
             }
+            System.out.println("Size of external cp for " + this + " is " + externalClassPath.size());
         }
     }
 
     @Override
-    public void analyze() throws Exception {
-        detectInternalClashes();
-        detectExternalClashes();
+    public void analyze(CLIOptions options) throws Exception {
+        detectInternalClashes(options);
+        detectExternalClashes(options);
     }
 
-    private void detectInternalClashes() throws NoSuchAlgorithmException, IOException {
+    private void detectInternalClashes(CLIOptions options) throws NoSuchAlgorithmException, IOException {
 
-        for (ClassFileCollection cfs1: internalClassPath) {
-            for (ClassFileCollection cfs2: internalClassPath) {
-                if (cfs1 == cfs2) {
-                    continue;
-                }
- 
-                checkIntersection(cfs1, cfs2);
-            }
-        }
-    }
-   
-    private void detectExternalClashes() throws NoSuchAlgorithmException, IOException {
-        for (ClassFileCollection cfs1: internalClassPath) {
-            for (ClassFileCollection cfs2: externalClassPath) {
+        for (ClassFileCollection cfs1 : internalClassPath) {
+            for (ClassFileCollection cfs2 : internalClassPath) {
                 if (cfs1 == cfs2) {
                     continue;
                 }
@@ -125,39 +114,57 @@ public class War implements ApplicationArchive, Container {
         }
     }
 
-    private void checkIntersection(ClassFileCollection cfs1, ClassFileCollection cfs2) throws NoSuchAlgorithmException, IOException {
-        Set<String> intersection = new HashSet<String>(cfs2.getClasses()); // use the copy constructor
+    private void detectExternalClashes(CLIOptions options) throws NoSuchAlgorithmException, IOException {
+        for (ClassFileCollection cfs1 : internalClassPath) {
+            Set<ClassFileCollection> externalCp = options.assumeSharedEarClassLoader
+                    ? parentEar.getAccumulatedLibraryClassPath()
+                    : externalClassPath;
+            for (ClassFileCollection cfs2 : externalCp) {
+                if (cfs1 == cfs2) {
+                    continue;
+                }
+
+                checkIntersection(cfs1, cfs2);
+            }
+        }
+    }
+
+    private void checkIntersection(ClassFileCollection cfs1, ClassFileCollection cfs2)
+            throws NoSuchAlgorithmException, IOException {
+        Set<String> intersection = new HashSet<String>(cfs2.getClasses()); // use
+                                                                           // the
+                                                                           // copy
+                                                                           // constructor
         intersection.retainAll(cfs1.getClasses());
         if (intersection.size() > 0) {
             if (isIdentical(cfs1, cfs2)) {
-                Findings.log.info("Duplicated resource " + System.lineSeparator() 
-                + "    " + cfs1 + " and " + System.lineSeparator() 
-                + "    " + cfs2);
-                
-            } else {
-                Findings.log.info("Clash between " + System.lineSeparator() 
-                + "    " + cfs1 + " and " + System.lineSeparator() 
-                + "    " + cfs2);
+                Findings.log.info("Duplicated resource " + System.lineSeparator() + "    " + cfs1 + " and "
+                        + System.lineSeparator() + "    " + cfs2);
 
-                for (String clash: intersection) {
+            } else {
+                Findings.log.info("Clash between " + System.lineSeparator() + "    " + cfs1 + " and "
+                        + System.lineSeparator() + "    " + cfs2);
+
+                for (String clash : intersection) {
                     Findings.log.fine("        - clashing on " + clash);
                 }
             }
         }
     }
 
-    private boolean isIdentical(ClassFileCollection cfs1, ClassFileCollection cfs2) throws NoSuchAlgorithmException, IOException {
+    private boolean isIdentical(ClassFileCollection cfs1, ClassFileCollection cfs2)
+            throws NoSuchAlgorithmException, IOException {
         String checksum1 = cfs1.getChecksum();
         String checksum2 = cfs2.getChecksum();
-        
+
         return checksum1.equals(checksum2);
     }
 
     public Set<ClassFileCollection> getInternalClassPath() {
         return internalClassPath;
     }
-    
+
     public String toString() {
-        return archiveName; 
+        return archiveName;
     }
 }

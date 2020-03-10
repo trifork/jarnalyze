@@ -95,7 +95,7 @@ public class Main {
     }
 
     private void analyze(CLIOptions options) throws Exception {
-        rootArchive.analyze();
+        rootArchive.analyze(options);
     }
     
 }
