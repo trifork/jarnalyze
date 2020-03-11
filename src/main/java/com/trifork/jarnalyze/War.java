@@ -12,8 +12,13 @@ import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.jar.Manifest;
+
+import com.trifork.jarnalyze.markup.Item;
+import com.trifork.jarnalyze.markup.ItemList;
+import com.trifork.jarnalyze.markup.Markup;
 
 public class War implements ApplicationArchive, Container {
 
@@ -84,7 +89,7 @@ public class War implements ApplicationArchive, Container {
 
                         ClassFileCollection libCp = parentEar.getLibraryClassPath(jarFilePath);
                         if (libCp == null) {
-                            Findings.log.warning(
+                            System.err.println(
                                     this.archiveName + " has an unresolved Class-Path reference to " + jarFilePath);
                         }
                         externalClassPath.add(libCp);
@@ -95,12 +100,13 @@ public class War implements ApplicationArchive, Container {
     }
 
     @Override
-    public void analyze(CLIOptions options) throws Exception {
-        detectInternalClashes(options);
-        detectExternalClashes(options);
+    public void analyze(CLIOptions options, List<Markup> findings) throws Exception {
+        detectInternalClashes(options, findings);
+        detectExternalClashes(options, findings);
     }
 
-    private void detectInternalClashes(CLIOptions options) throws NoSuchAlgorithmException, IOException {
+    private void detectInternalClashes(CLIOptions options, List<Markup> findings)
+            throws NoSuchAlgorithmException, IOException {
 
         for (ClassFileCollection cfs1 : internalClassPath) {
             for (ClassFileCollection cfs2 : internalClassPath) {
@@ -108,12 +114,16 @@ public class War implements ApplicationArchive, Container {
                     continue;
                 }
 
-                checkIntersection(cfs1, cfs2);
+                Markup finding = checkIntersection(options, cfs1, cfs2);
+                if (finding != null) {
+                    findings.add(finding);
+                }
             }
         }
     }
 
-    private void detectExternalClashes(CLIOptions options) throws NoSuchAlgorithmException, IOException {
+    private void detectExternalClashes(CLIOptions options, List<Markup> findings)
+            throws NoSuchAlgorithmException, IOException {
         for (ClassFileCollection cfs1 : internalClassPath) {
             Set<ClassFileCollection> externalCp = options.assumeSharedEarClassLoader
                     ? parentEar.getAccumulatedLibraryClassPath()
@@ -123,32 +133,41 @@ public class War implements ApplicationArchive, Container {
                     continue;
                 }
 
-                checkIntersection(cfs1, cfs2);
+                Markup finding = checkIntersection(options, cfs1, cfs2);
+                if (finding != null) {
+                    findings.add(finding);
+                }
             }
         }
     }
 
-    private void checkIntersection(ClassFileCollection cfs1, ClassFileCollection cfs2)
+    private Markup checkIntersection(CLIOptions options, ClassFileCollection cfs1, ClassFileCollection cfs2)
             throws NoSuchAlgorithmException, IOException {
-        Set<String> intersection = new HashSet<String>(cfs2.getClasses()); // use
-                                                                           // the
-                                                                           // copy
-                                                                           // constructor
+
+        Markup finding = null;
+
+        Set<String> intersection = new HashSet<String>(cfs2.getClasses());
+
         intersection.retainAll(cfs1.getClasses());
         if (intersection.size() > 0) {
             if (isIdentical(cfs1, cfs2)) {
-                Findings.log.info("Duplicated resource " + System.lineSeparator() + "    " + cfs1 + " and "
-                        + System.lineSeparator() + "    " + cfs2);
+
+                finding = new Markup();
+                finding.headline("Duplicate resource ").itemList().item().strong(cfs1).item().strong(cfs2);
 
             } else {
-                Findings.log.info("Clash between " + System.lineSeparator() + "    " + cfs1 + " and "
-                        + System.lineSeparator() + "    " + cfs2);
+                finding = new Markup().headline("Clash detected");
+                Item item = finding.itemList().item().strong(cfs1).item().strong(cfs2);
 
-                for (String clash : intersection) {
-                    Findings.log.fine("        - clashing on " + clash);
+                if (options.verbose) {
+                    ItemList itemList = item.itemList();
+                    for (String clash : intersection) {
+                        itemList.item().plain("clashing on " + clash);
+                    }
                 }
             }
         }
+        return finding;
     }
 
     private boolean isIdentical(ClassFileCollection cfs1, ClassFileCollection cfs2)

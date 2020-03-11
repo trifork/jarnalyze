@@ -10,8 +10,11 @@ public class CLIOptions {
 	@Option(name="-v", usage="Be verbose about what's going on")
 	boolean verbose;
 
-	@Option(name="-sl", usage="Assume ear libs are loaded by a shared classloader")
+	@Option(name="-sharedlibs", usage="Assume ear libs are loaded by a shared classloader")
 	boolean assumeSharedEarClassLoader;
+	
+	@Option(name="-color", usage="Use ANSI color codes in output")
+	boolean enableConsoleColors;
 	
 	@Argument
 	List<String> arguments = new ArrayList<String>();

@@ -23,6 +23,9 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.trifork.jarnalyze.markup.ItemList;
+import com.trifork.jarnalyze.markup.Markup;
+
 public class Ear implements ApplicationArchive, Container {
     private FileSystem earFS;
     private String archiveName;
@@ -86,7 +89,6 @@ public class Ear implements ApplicationArchive, Container {
             }
 
             return webUris;
-
         }
     }
 
@@ -108,12 +110,12 @@ public class Ear implements ApplicationArchive, Container {
     }
 
     @Override
-    public void analyze(CLIOptions options) throws Exception {
+    public void analyze(CLIOptions options, List<Markup> findings) throws Exception {
         HashSet<ClassFileCollection> accumulatedWarCp = new HashSet<>();
         HashSet<ClassFileCollection> candidatesForSharing = new HashSet<>();
-        
+
         for (War war: wars) {
-            war.analyze(options);
+            war.analyze(options, findings);
             
             Set<ClassFileCollection> cp = war.getInternalClassPath();
             HashSet<ClassFileCollection> intersection = new HashSet<ClassFileCollection>(cp);
@@ -125,14 +127,15 @@ public class Ear implements ApplicationArchive, Container {
         }
         
         for (ClassFileCollection cfs: candidatesForSharing) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Candidate for sharing: " + cfs.getDisplayName());
+            Markup finding = new Markup();
+            ItemList itemList = finding.headline("Candidate for sharing: " + cfs.getDisplayName()).itemList();
             for (War war: wars) {
                 if (war.getInternalClassPath().contains(cfs)) {
-                    sb.append(System.lineSeparator() + "    Contained by " + war);
+                    itemList.item().strong("Contained by " + war);
                 }
             }
-            Findings.log.info(sb.toString());
+            
+            findings.add(finding);
         }
     }
 

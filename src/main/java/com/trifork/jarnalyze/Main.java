@@ -6,11 +6,17 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+
+import com.trifork.jarnalyze.markup.Markup;
+import com.trifork.jarnalyze.renderer.ColoredConsoleRenderer;
+import com.trifork.jarnalyze.renderer.ConsoleRenderer;
+import com.trifork.jarnalyze.renderer.Renderer;
 
 /**
  * @author Jeppe Sommer
@@ -45,8 +51,6 @@ public class Main {
         } catch (InvalidArgumentException e) {
             e.printStackTrace();
         }
-
-        Findings.setVerbose(options.verbose);
 
         try {
             load(options);
@@ -95,8 +99,21 @@ public class Main {
     }
 
     private void analyze(CLIOptions options) throws Exception {
-        rootArchive.analyze(options);
+        ArrayList<Markup> findings = new ArrayList<>();
+        rootArchive.analyze(options, findings);
+
+        Renderer renderer;
+        if (options.enableConsoleColors) {
+            renderer = new ColoredConsoleRenderer(System.out);
+        } else {
+            renderer = new ConsoleRenderer(System.out);
+        }
+
+        for (Markup finding: findings) {
+            finding.visit(renderer);
+        }
+
+        renderer.close();
     }
-    
 }
 
