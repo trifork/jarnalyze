@@ -10,7 +10,7 @@ public class ConsoleRenderer implements Renderer {
     private int indentLevel;
 
     public ConsoleRenderer(OutputStream os) {
-        w = new PrintWriter(os);
+        this(new PrintWriter(os));
     }
 
     public ConsoleRenderer(PrintWriter w) {

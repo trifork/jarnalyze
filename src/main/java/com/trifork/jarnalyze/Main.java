@@ -2,6 +2,7 @@ package com.trifork.jarnalyze;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import com.trifork.jarnalyze.markup.Markup;
 import com.trifork.jarnalyze.renderer.ColoredConsoleRenderer;
 import com.trifork.jarnalyze.renderer.ConsoleRenderer;
+import com.trifork.jarnalyze.renderer.HtmlRenderer;
 import com.trifork.jarnalyze.renderer.Renderer;
 
 /**
@@ -102,11 +104,20 @@ public class Main {
         ArrayList<Markup> findings = new ArrayList<>();
         rootArchive.analyze(options, findings);
 
+        OutputStream out = System.out;
+        
         Renderer renderer;
-        if (options.enableConsoleColors) {
-            renderer = new ColoredConsoleRenderer(System.out);
-        } else {
-            renderer = new ConsoleRenderer(System.out);
+        switch (options.outputFormat) {
+        case CONSOLE:
+        default:
+            renderer = new ConsoleRenderer(out);
+            break;
+        case COLORCONSOLE:
+            WindowsConsoleSupport.enableWindowsConsoleColors();
+            renderer = new ColoredConsoleRenderer(out);
+            break;
+        case HTML: 
+            renderer = new HtmlRenderer(out);
         }
 
         for (Markup finding: findings) {
