@@ -24,6 +24,9 @@ public class CLIOptions {
     @Option(name="-exclude", usage="Exclude pattern for resources (regex format)")
     String excludePattern;
 
+    @Option(name="-help", help = true)
+    boolean printHelp;
+    
 	@Argument
 	List<String> arguments = new ArrayList<String>();
 }

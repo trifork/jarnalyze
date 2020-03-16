@@ -49,6 +49,11 @@ public class Main {
             return;
         }
 
+        if (options.printHelp) {
+            parser.printUsage(System.out);
+            System.exit(0);
+        }
+        
         try {
             validateOptions(options);
         } catch (InvalidArgumentException e) {
