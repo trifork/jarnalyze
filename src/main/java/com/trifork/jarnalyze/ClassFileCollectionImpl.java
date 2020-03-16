@@ -8,16 +8,17 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class ClassFileCollectionImpl implements ClassFileCollection {
 
     private String displayName;
     private Set<String> classFileList;
-    private Container container;
+    private ApplicationArchive container;
     private Path resourcePath;
     private String checksum;
 
-    public ClassFileCollectionImpl(String displayName, Path resourcePath, Path root, Container container) throws IOException {
+    public ClassFileCollectionImpl(String displayName, Path resourcePath, Path root, ApplicationArchive container) throws IOException {
         this.displayName = displayName;
         this.resourcePath = resourcePath;
         this.container = container;
@@ -33,11 +34,16 @@ public class ClassFileCollectionImpl implements ClassFileCollection {
     private void loadClassList(Path root) throws IOException {
         classFileList = new HashSet<>();
 
-        Files.walk(root)
-        .filter(Files::isRegularFile)
-        .filter(f -> !f.toString().startsWith("/META-INF"))
-        // .filter(f -> f.getFileName().toString().endsWith(".class"))
-        .forEach(path -> classFileList.add(path.toString()));
+        Stream<Path> stream = Files.walk(root).filter(Files::isRegularFile);
+
+        if (container.getIncludePattern() != null) {
+            stream = stream.filter(f -> container.getIncludePattern().matcher(f.toString()).matches());
+        }
+        if (container.getExcludePattern() != null) {
+            stream = stream.filter(f -> !container.getExcludePattern().matcher(f.toString()).matches());
+        }
+        
+        stream.forEach(path -> classFileList.add(path.toString()));
     }
 
     @Override

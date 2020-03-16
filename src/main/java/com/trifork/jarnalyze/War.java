@@ -15,12 +15,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.Manifest;
+import java.util.regex.Pattern;
 
 import com.trifork.jarnalyze.markup.Item;
 import com.trifork.jarnalyze.markup.ItemList;
 import com.trifork.jarnalyze.markup.Markup;
 
-public class War implements ApplicationArchive, Container {
+public class War extends AbstractApplicationArchive {
 
     private String archiveName;
     private Path root;
@@ -180,6 +181,22 @@ public class War implements ApplicationArchive, Container {
 
     public Set<ClassFileCollection> getInternalClassPath() {
         return internalClassPath;
+    }
+
+    @Override
+    public Pattern getIncludePattern() {
+        if (parentEar != null) {
+            return parentEar.getIncludePattern();
+        }
+        return super.getIncludePattern();
+    }
+
+    @Override
+    public Pattern getExcludePattern() {
+        if (parentEar != null) {
+            return parentEar.getExcludePattern();
+        }
+        return super.getExcludePattern();
     }
 
     public String toString() {

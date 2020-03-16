@@ -26,7 +26,7 @@ import javax.xml.stream.events.XMLEvent;
 import com.trifork.jarnalyze.markup.ItemList;
 import com.trifork.jarnalyze.markup.Markup;
 
-public class Ear implements ApplicationArchive, Container {
+public class Ear extends AbstractApplicationArchive {
     private FileSystem earFS;
     private String archiveName;
     private Map<String, ClassFileCollection> libs = new HashMap<>();

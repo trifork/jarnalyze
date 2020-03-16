@@ -8,8 +8,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
-import javax.xml.stream.XMLStreamException;
+import java.util.regex.Pattern;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -24,6 +23,8 @@ import com.trifork.jarnalyze.renderer.Renderer;
  * @author Jeppe Sommer
  */
 public class Main {
+
+    private static final String DEFAULT_INCLUDE_PATTERN = ".*\\.class";
 
     public static void main(String[] args) throws Exception {
         new Main().doMain(args);
@@ -81,8 +82,21 @@ public class Main {
         }
     }
 
-    private void load(CLIOptions options) throws IOException, XMLStreamException {
+    private void load(CLIOptions options) throws Exception {
 
+        Pattern includePattern = null;
+        if (options.includePattern != null) {
+            includePattern = Pattern.compile(options.includePattern);
+        } else if (options.excludePattern == null) {
+            // Activate default include pattern if neither include nor exclude pattern have been specified
+            includePattern = Pattern.compile(DEFAULT_INCLUDE_PATTERN);
+        }
+        Pattern excludePattern = null;
+        if (options.excludePattern != null) {
+            excludePattern = Pattern.compile(options.excludePattern);
+        }
+        
+        
         String archive = options.arguments.get(0);
 
         Path archivePath = Paths.get(archive);
@@ -90,14 +104,15 @@ public class Main {
         FileSystem jarFS = FileSystems.newFileSystem(archivePath);
 
         if (archive.endsWith(".ear")) {
-            Ear ear = new Ear(jarFS, archive);
-            ear.load();
-            rootArchive = ear;
+            rootArchive = new Ear(jarFS, archive);
         } else if (archive.endsWith(".war")) {
-            War war = new War(jarFS.getRootDirectories().iterator().next(), archive, null);
-            war.load();
-            rootArchive = war;
+            rootArchive = new War(jarFS.getRootDirectories().iterator().next(), archive, null);
         }
+        
+        rootArchive.setIncludePattern(includePattern);
+        rootArchive.setExcludePattern(excludePattern);
+        
+        rootArchive.load();
     }
 
     private void analyze(CLIOptions options) throws Exception {
@@ -108,15 +123,15 @@ public class Main {
         
         Renderer renderer;
         switch (options.outputFormat) {
-        case CONSOLE:
+        case console:
         default:
             renderer = new ConsoleRenderer(out);
             break;
-        case COLORCONSOLE:
+        case color:
             WindowsConsoleSupport.enableWindowsConsoleColors();
             renderer = new ColoredConsoleRenderer(out);
             break;
-        case HTML: 
+        case html: 
             renderer = new HtmlRenderer(out);
         }
 
