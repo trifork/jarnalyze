@@ -9,4 +9,6 @@ Jarnalyze will look for conflicting resources (e.g., .class files) in the follow
 * In WEB-INF/lib/*.jar in .war files
 * In library jars in parent .ear files (designated by the Class-Path attribute of META-INF/MANIFEST.MF in .war files)
 
+NOTE: Java 13 or newer required!
+
  
