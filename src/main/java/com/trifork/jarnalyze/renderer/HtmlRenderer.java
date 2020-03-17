@@ -50,8 +50,15 @@ public class HtmlRenderer implements Renderer {
     }
 
     @Override
-    public void headline(String text) {
-        w.print("<h2>");
+    public void errorText(String text) {
+        w.print("<h2 class='error'>");
+        w.print(text);
+        w.print("</h2>");
+    }
+
+    @Override
+    public void warningText(String text) {
+        w.print("<h2 class='warning'>");
         w.print(text);
         w.print("</h2>");
     }

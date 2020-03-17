@@ -154,10 +154,10 @@ public class War extends AbstractApplicationArchive {
             if (isIdentical(cfs1, cfs2)) {
 
                 finding = new Markup();
-                finding.headline("Duplicate resource ").itemList().item().strong(cfs1).item().strong(cfs2);
+                finding.warningText("Duplicate resource ").itemList().item().strong(cfs1).item().strong(cfs2);
 
             } else {
-                finding = new Markup().headline("Clash detected");
+                finding = new Markup().errorText("Clash detected");
                 Item item = finding.itemList().item().strong(cfs1).item().strong(cfs2);
 
                 if (options.verbose) {

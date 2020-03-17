@@ -18,7 +18,13 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void headline(String text) {
+    public void errorText(String text) {
+        w.println();
+        w.print(text);
+    }
+
+    @Override
+    public void warningText(String text) {
         w.println();
         w.print(text);
     }

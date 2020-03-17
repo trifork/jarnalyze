@@ -128,7 +128,7 @@ public class Ear extends AbstractApplicationArchive {
         
         for (ClassFileCollection cfs: candidatesForSharing) {
             Markup finding = new Markup();
-            ItemList itemList = finding.headline("Candidate for sharing: " + cfs.getDisplayName()).itemList();
+            ItemList itemList = finding.warningText("Candidate for sharing: " + cfs.getDisplayName()).itemList();
             for (War war: wars) {
                 if (war.getInternalClassPath().contains(cfs)) {
                     itemList.item().strong("Contained by " + war);

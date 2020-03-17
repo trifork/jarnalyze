@@ -1,7 +1,9 @@
 package com.trifork.jarnalyze.renderer;
 
 public interface Renderer {
-    public void headline(String text);
+    public void errorText(String text);
+
+    public void warningText(String text);
     
     public void strong(String text);
     

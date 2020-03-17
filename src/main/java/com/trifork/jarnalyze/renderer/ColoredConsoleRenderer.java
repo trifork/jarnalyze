@@ -15,9 +15,17 @@ public class ColoredConsoleRenderer extends ConsoleRenderer {
     }
 
     @Override
-    public void headline(String text) {
+    public void errorText(String text) {
         w.println();
         w.print(ANSI_RED);
+        w.print(text);
+        w.print(ANSI_RESET);
+    }
+
+    @Override
+    public void warningText(String text) {
+        w.println();
+        w.print(ANSI_YELLOW);
         w.print(text);
         w.print(ANSI_RESET);
     }

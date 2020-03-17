@@ -16,8 +16,13 @@ public class Markup {
         this.parent = parent;
     }
 
-    public Markup headline(String text) {
-        parts.add(new Headline(text));
+    public Markup errorText(String text) {
+        parts.add(new ErrorText(text));
+        return this;
+    }
+
+    public Markup warningText(String text) {
+        parts.add(new WarningText(text));
         return this;
     }
 

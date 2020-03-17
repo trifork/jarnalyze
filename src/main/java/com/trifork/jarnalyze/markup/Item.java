@@ -12,8 +12,8 @@ public class Item extends Markup {
         return itemList.item();
     }
 
-    public Item headline(String text) {
-        super.headline(text);
+    public Item errorText(String text) {
+        super.errorText(text);
         return this;
     }
     
