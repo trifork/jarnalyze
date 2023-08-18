@@ -126,6 +126,11 @@ public class Ear extends AbstractApplicationArchive {
             accumulatedWarCp.addAll(cp);
         }
         
+        if (options.assumeSharedEarClassLoader) {
+            // If Ear classloader is shared, check for any conflict. If non-shared, War must check for conflicts in manifest classpath
+            checkPermutations(options, findings, getAccumulatedLibraryClassPath());
+        }
+
         for (ClassFileCollection cfs: candidatesForSharing) {
             Markup finding = new Markup();
             ItemList itemList = finding.warningText("Candidate for sharing: " + cfs.getDisplayName()).itemList();

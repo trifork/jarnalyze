@@ -17,8 +17,6 @@ import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
-import com.trifork.jarnalyze.markup.Item;
-import com.trifork.jarnalyze.markup.ItemList;
 import com.trifork.jarnalyze.markup.Markup;
 
 public class War extends AbstractApplicationArchive {
@@ -109,26 +107,15 @@ public class War extends AbstractApplicationArchive {
     private void detectInternalClashes(CLIOptions options, List<Markup> findings)
             throws NoSuchAlgorithmException, IOException {
 
-        for (ClassFileCollection cfs1 : internalClassPath) {
-            for (ClassFileCollection cfs2 : internalClassPath) {
-                if (cfs1 == cfs2) {
-                    continue;
-                }
-
-                Markup finding = checkIntersection(options, cfs1, cfs2);
-                if (finding != null) {
-                    findings.add(finding);
-                }
-            }
-        }
+        checkPermutations(options, findings, internalClassPath);
     }
 
     private void detectExternalClashes(CLIOptions options, List<Markup> findings)
             throws NoSuchAlgorithmException, IOException {
+        Set<ClassFileCollection> externalCp = options.assumeSharedEarClassLoader
+                ? parentEar.getAccumulatedLibraryClassPath()
+                : externalClassPath;
         for (ClassFileCollection cfs1 : internalClassPath) {
-            Set<ClassFileCollection> externalCp = options.assumeSharedEarClassLoader
-                    ? parentEar.getAccumulatedLibraryClassPath()
-                    : externalClassPath;
             for (ClassFileCollection cfs2 : externalCp) {
                 if (cfs1 == cfs2) {
                     continue;
@@ -140,43 +127,12 @@ public class War extends AbstractApplicationArchive {
                 }
             }
         }
-    }
-
-    private Markup checkIntersection(CLIOptions options, ClassFileCollection cfs1, ClassFileCollection cfs2)
-            throws NoSuchAlgorithmException, IOException {
-
-        Markup finding = null;
-
-        Set<String> intersection = new HashSet<String>(cfs2.getClasses());
-
-        intersection.retainAll(cfs1.getClasses());
-        if (intersection.size() > 0) {
-            if (isIdentical(cfs1, cfs2)) {
-
-                finding = new Markup();
-                finding.warningText("Duplicate resource ").itemList().item().strong(cfs1).item().strong(cfs2);
-
-            } else {
-                finding = new Markup().errorText("Clash detected");
-                Item item = finding.itemList().item().strong(cfs1).item().strong(cfs2);
-
-                if (options.verbose) {
-                    ItemList itemList = item.itemList();
-                    for (String clash : intersection) {
-                        itemList.item().plain("clashing on " + clash);
-                    }
-                }
-            }
+        if (!options.assumeSharedEarClassLoader) {
+            // If no shared classloader, we need to check if the manifest classpath of this
+            // war has conflict.
+            // If shared classloader, conflicts will be detected in Ear
+            checkPermutations(options, findings, externalClassPath);
         }
-        return finding;
-    }
-
-    private boolean isIdentical(ClassFileCollection cfs1, ClassFileCollection cfs2)
-            throws NoSuchAlgorithmException, IOException {
-        String checksum1 = cfs1.getChecksum();
-        String checksum2 = cfs2.getChecksum();
-
-        return checksum1.equals(checksum2);
     }
 
     public Set<ClassFileCollection> getInternalClassPath() {
