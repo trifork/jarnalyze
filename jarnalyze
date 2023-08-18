@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export JAVA_HOME=`/usr/libexec/java_home -v17`
+java -jar ~/projects/jarnalyze/target/jarnalyze.jar -exclude "/module-info.class|/META-INF/.*|.*\.html|.*\.txt|/NOTICE|/LICENSE" $*
