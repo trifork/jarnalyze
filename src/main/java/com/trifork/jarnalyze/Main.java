@@ -77,8 +77,8 @@ public class Main {
         }
 
         for (String argument : options.arguments) {
-            if (!argument.endsWith(".ear") && !argument.endsWith(".war")) {
-                throw new InvalidArgumentException("Only .ear and .war files are currently supported");
+            if (!argument.endsWith(".ear") && !argument.endsWith(".war") && !argument.endsWith(".jar")) {
+                throw new InvalidArgumentException("Only .ear, .war and .jar files are currently supported");
             }
 
             if (!new File(argument).canRead()) {
@@ -112,6 +112,8 @@ public class Main {
             rootArchive = new Ear(jarFS, archive);
         } else if (archive.endsWith(".war")) {
             rootArchive = new War(jarFS.getRootDirectories().iterator().next(), archive, null);
+        } else if (archive.endsWith(".jar")) {
+            rootArchive = new SpringBootApp(jarFS.getRootDirectories().iterator().next(), archive, null);
         }
         
         rootArchive.setIncludePattern(includePattern);
