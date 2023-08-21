@@ -113,7 +113,7 @@ public class Main {
         } else if (archive.endsWith(".war")) {
             rootArchive = new War(jarFS.getRootDirectories().iterator().next(), archive, null);
         } else if (archive.endsWith(".jar")) {
-            rootArchive = new SpringBootApp(jarFS.getRootDirectories().iterator().next(), archive, null);
+            rootArchive = new SpringBootApp(jarFS.getRootDirectories().iterator().next(), archive);
         }
         
         rootArchive.setIncludePattern(includePattern);
